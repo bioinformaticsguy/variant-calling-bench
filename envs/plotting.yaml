@@ -1,0 +1,8 @@
+name: plotting_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - matplotlib>=3.7
+  - numpy>=1.24

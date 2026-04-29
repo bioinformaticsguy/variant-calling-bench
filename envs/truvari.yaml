@@ -1,0 +1,12 @@
+name: truvari_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - matplotlib>=3.7
+  - numpy>=1.24
+  - pip
+  - pip:
+      - truvari        # installed via pip so pysam/htslib are bundled statically
+                       # (avoids the libcurl/c-ares conda resolver conflict)

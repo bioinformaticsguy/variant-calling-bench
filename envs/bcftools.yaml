@@ -1,0 +1,14 @@
+# bcftools env — not used for creation.
+# The Snakefile points directly at the existing dsd_snv_pipeline env
+# (/root/miniforge3/envs/dsd_snv_pipeline) which already has:
+#   bcftools 1.23, htslib 1.23 (bgzip + tabix)
+#
+# If you need to recreate this independently, install into an existing env:
+#   conda install -n <your_env> -c bioconda bcftools htslib
+name: bcftools_ref
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - bcftools>=1.17
+  - htslib>=1.17
