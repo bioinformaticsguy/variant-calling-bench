@@ -20,7 +20,9 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
-BCFTOOLS = snakemake.params.bcftools
+BCFTOOLS    = snakemake.params.bcftools
+TRUTH_LABEL = snakemake.params.truth_label
+QUERY_LABEL = snakemake.params.query_label
 
 # Canonical SVTYPE order and normalisation map
 SVTYPE_ORDER = ["DEL", "INS", "DUP", "INV", "BND", "OTHER"]
@@ -96,7 +98,7 @@ with open(log_path, "w") as log:
         tp_counts = get_svtype_counts(snakemake.input.tp_base)
         fp_counts = get_svtype_counts(snakemake.input.fp)
         fn_counts = get_svtype_counts(snakemake.input.fn)
-        sample    = str(snakemake.wildcards.sample)
+        pipeline  = str(snakemake.wildcards.pipeline)
 
         # Only show types that appear in at least one file
         present = sorted(
@@ -127,8 +129,8 @@ with open(log_path, "w") as log:
         n = len(present)
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(max(10, n * 2), 11))
         fig.suptitle(
-            f"Per-SVTYPE Concordance  ·  Sample: {sample}\n"
-            f"rare_disease (base) vs varient_piper (comp)",
+            f"Per-SVTYPE Concordance  ·  Pipeline: {pipeline}\n"
+            f"{TRUTH_LABEL} (truth) vs {QUERY_LABEL} (query)",
             fontsize=13, fontweight="bold",
         )
 
@@ -136,9 +138,9 @@ with open(log_path, "w") as log:
         w     = 0.26
 
         # Panel A – grouped bar (TP / FP / FN)
-        ax1.bar(x - w, tp_vals, w, label="TP (shared)",              color="#2ECC71", edgecolor="black", linewidth=0.4)
-        ax1.bar(x,     fp_vals, w, label="FP (only varient_piper)",  color="#3498DB", edgecolor="black", linewidth=0.4)
-        ax1.bar(x + w, fn_vals, w, label="FN (only rare_disease)",   color="#E74C3C", edgecolor="black", linewidth=0.4)
+        ax1.bar(x - w, tp_vals, w, label="TP (shared)",                    color="#2ECC71", edgecolor="black", linewidth=0.4)
+        ax1.bar(x,     fp_vals, w, label=f"FP (only {QUERY_LABEL})",       color="#3498DB", edgecolor="black", linewidth=0.4)
+        ax1.bar(x + w, fn_vals, w, label=f"FN (only {TRUTH_LABEL})",       color="#E74C3C", edgecolor="black", linewidth=0.4)
 
         # Annotate bars
         for xi, (tp, fp, fn) in enumerate(zip(tp_vals, fp_vals, fn_vals)):

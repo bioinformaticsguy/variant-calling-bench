@@ -2,14 +2,14 @@
 calculate_metrics.py
 ─────────────────────
 Count variants from bcftools isec output files and compute:
-  - sensitivity  = TP / (TP + FN)   [how much of rare_disease does varient_piper find?]
-  - precision    = TP / (TP + FP)   [how much of varient_piper is in rare_disease?]
+  - sensitivity  = TP / (TP + FN)   [how much of truth does the query find?]
+  - precision    = TP / (TP + FP)   [how much of the query is in truth?]
   - F1           = harmonic mean of sensitivity and precision
 
 bcftools isec file mapping
-  0000.vcf  only in rare_disease   → FN (false negatives for varient_piper)
-  0001.vcf  only in varient_piper  → FP (false positives for varient_piper)
-  0002.vcf  shared (truth side)   → TP
+  0000.vcf  only in truth  → FN (missed by query)
+  0001.vcf  only in query  → FP (not in truth)
+  0002.vcf  shared (truth side) → TP
 """
 
 import csv
@@ -59,7 +59,7 @@ with open(log_path, "w") as log:
         )
 
         metrics = {
-            "sample": str(snakemake.wildcards.sample),
+            "pipeline": str(snakemake.wildcards.pipeline),
             "variant_type": "SNV",
             "truth_pipeline": TRUTH_LABEL,
             "query_pipeline": QUERY_LABEL,
@@ -77,7 +77,7 @@ with open(log_path, "w") as log:
             },
         }
 
-        log.write(f"Sample:           {snakemake.wildcards.sample}\n")
+        log.write(f"Pipeline:         {snakemake.wildcards.pipeline}\n")
         log.write(f"Truth:            {TRUTH_LABEL}\n")
         log.write(f"Query:            {QUERY_LABEL}\n")
         log.write(f"FN (only truth):  {fn:,}\n")
@@ -102,7 +102,7 @@ with open(log_path, "w") as log:
                 "sensitivity", "precision", "f1",
             ])
             writer.writerow([
-                metrics["sample"], metrics["variant_type"],
+                metrics["pipeline"], metrics["variant_type"],
                 TRUTH_LABEL, QUERY_LABEL,
                 fn, fp, tp, total_truth, total_query,
                 round(sensitivity, 6), round(precision, 6), round(f1, 6),

@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Test config — small Chr22 snippets for fast dry-run / CI validation.
+#  Run with:  snakemake --configfile config/config_test.yaml
+# ─────────────────────────────────────────────────────────────────────────────
+
+truth:
+  name: "HG002"
+  snv:
+    vcf: "test_input/truth/HG002/SNV/test_HG002.chr22.vcf.gz"
+    bed: "test_input/truth/HG002/SNV/test_HG002.chr22.bed"
+  sv:
+    vcf: "test_input/truth/HG002/SV/test_HG002.chr22.sv.vcf.gz"
+    bed: ""
+
+pipelines:
+  variant_piper:
+    label: "VariantPiper"
+    snv: "test_input/variant_piper/SNV/test_HG002.chr22.vcf.gz"
+    sv:  "test_input/variant_piper/SV/test_HG002.chr22.sv.vcf.gz"
+
+snv_pipelines:
+  - variant_piper
+
+sv_pipelines:
+  - variant_piper
+
+reference: ""
+filter_pass: true
+
+truvari:
+  refdist: 500
+  pctsize: 0.7
+  pctseq:  0.0
+  sizemin: 50
+
+bcftools_bin: "bcftools"
+results_dir:  "results_test"

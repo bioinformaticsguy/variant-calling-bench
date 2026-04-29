@@ -1,0 +1,64 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  Variant Calling Benchmark Config
+#
+#  Truth  = HG002 GIAB benchmark (sensitivity denominator)
+#  Query  = pipelines listed under `pipelines` (precision denominator)
+#
+#  To benchmark a new pipeline, add an entry under `pipelines` and include its
+#  key in `snv_pipelines` and/or `sv_pipelines`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Truth set: HG002 GIAB ─────────────────────────────────────────────────────
+truth:
+  name: "HG002"
+  snv:
+    vcf: "input_data/truth/HG002/SNV/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz"
+    bed: "input_data/truth/HG002/SNV/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed"
+  sv:
+    vcf: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
+    bed: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed"
+
+# ── Pipelines to benchmark ───────────────────────────────────────────────────
+# Add a new entry here to benchmark an additional caller / pipeline.
+# `label` is used in plot titles and CSV headers.
+pipelines:
+  variant_piper:
+    label: "VariantPiper"
+    snv: "input_data/variant_piper/SNV/HG002.vcf.gz"
+    sv:  "input_data/variant_piper/SV/HG002.manta.sv.vcf.gz"
+  # rare_disease:
+  #   label: "RareDisease"
+  #   snv: "input_data/rare_disease/SNV/HG002.vcf.gz"
+  #   sv:  "input_data/rare_disease/SV/HG002.sv.vcf.gz"
+
+# ── Which pipelines to run SNV benchmarking for ───────────────────────────────
+# Must be keys present in `pipelines` above.
+snv_pipelines:
+  - variant_piper
+
+# ── Which pipelines to run SV benchmarking for ───────────────────────────────
+sv_pipelines:
+  - variant_piper
+
+# ── Reference FASTA ───────────────────────────────────────────────────────────
+# Used by bcftools norm (left-alignment) and truvari --pctseq.
+# Leave empty to skip both; set pctseq: 0.0 when no reference is provided.
+reference: ""
+
+# ── Variant filtering ─────────────────────────────────────────────────────────
+# Restrict query VCFs to PASS variants before comparison.
+# The truth (HG002) is never PASS-filtered — its BED is the quality gate.
+filter_pass: true
+
+# ── Truvari SV benchmarking parameters ───────────────────────────────────────
+truvari:
+  refdist: 500    # max breakpoint distance (bp)
+  pctsize: 0.7    # minimum size similarity [0–1]
+  pctseq:  0.0    # sequence similarity — set to 0.7 only when `reference` is set
+  sizemin: 50     # minimum SV size to consider (bp)
+
+# ── Tool paths ────────────────────────────────────────────────────────────────
+bcftools_bin: "bcftools"
+
+# ── Output directory ──────────────────────────────────────────────────────────
+results_dir: "results"

@@ -66,7 +66,7 @@ os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
 with open(log_path, "w") as log:
     try:
-        sample = str(snakemake.wildcards.sample)
+        pipeline = str(snakemake.wildcards.pipeline)
 
         fn_counts = get_chrom_counts(snakemake.input.only_a)    # only in truth
         fp_counts = get_chrom_counts(snakemake.input.only_b)    # only in query
@@ -92,7 +92,7 @@ with open(log_path, "w") as log:
             2, 1, figsize=(max(12, n * 0.55), 11), sharex=True
         )
         fig.suptitle(
-            f"Per-Chromosome SNV Concordance  ·  {TRUTH_LABEL}  vs  {QUERY_LABEL}\nSample: {sample}",
+            f"Per-Chromosome SNV Concordance  ·  {TRUTH_LABEL}  vs  {QUERY_LABEL}\nPipeline: {pipeline}",
             fontsize=13, fontweight="bold",
         )
 

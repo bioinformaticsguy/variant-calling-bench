@@ -27,17 +27,17 @@ with open(log_path, "w") as log:
         with open(snakemake.input.metrics) as fh:
             data = json.load(fh)
 
-        counts  = data["counts"]
-        metrics = data["metrics"]
-        sample  = data["sample"]
-        truth   = data["truth_pipeline"]
-        query   = data["query_pipeline"]
+        counts   = data["counts"]
+        metrics  = data["metrics"]
+        pipeline = data["pipeline"]
+        truth    = data["truth_pipeline"]
+        query    = data["query_pipeline"]
 
         # ── Figure layout ─────────────────────────────────────────────────────
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle(
-            f"SNV Concordance  ·  {truth}  vs  {query}\nSample: {sample}",
+            f"SNV Concordance  ·  {truth}  vs  {query}\nPipeline: {pipeline}",
             fontsize=13,
             fontweight="bold",
             y=1.02,
@@ -148,12 +148,12 @@ with open(log_path, "w") as log:
         with open(snakemake.output.csv, "w", newline="") as fh:
             writer = csv.writer(fh)
             writer.writerow([
-                "sample", "truth_pipeline", "query_pipeline",
+                "pipeline", "truth_pipeline", "query_pipeline",
                 "fn", "fp", "tp", "total_truth", "total_query",
                 "sensitivity", "precision", "f1",
             ])
             writer.writerow([
-                sample, truth, query,
+                pipeline, truth, query,
                 counts[f"only_{truth}"], counts[f"only_{query}"], counts["shared"],
                 counts[f"total_{truth}"], counts[f"total_{query}"],
                 metrics["sensitivity"], metrics["precision"], metrics["f1"],

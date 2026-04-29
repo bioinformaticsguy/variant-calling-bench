@@ -34,7 +34,7 @@ with open(log_path, "w") as log:
         f1  = tv.get("f1",        tv.get("F1",        0))
         base_total  = tv.get("base cnt", tp + fn)
         comp_total  = tv.get("comp cnt", tp + fp)
-        sample      = str(snakemake.wildcards.sample)
+        pipeline    = str(snakemake.wildcards.pipeline)
         truth_label = snakemake.params.truth_label
         query_label = snakemake.params.query_label
 
@@ -46,7 +46,7 @@ with open(log_path, "w") as log:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
         fig.suptitle(
             f"SV Concordance  ·  {truth_label}  vs  {query_label}\n"
-            f"Sample: {sample}  |  Truvari: refdist={snakemake.config['truvari']['refdist']}bp  "
+            f"Pipeline: {pipeline}  |  Truvari: refdist={snakemake.config['truvari']['refdist']}bp  "
             f"pctsize={snakemake.config['truvari']['pctsize']}  sizemin={snakemake.config['truvari']['sizemin']}bp",
             fontsize=12, fontweight="bold", y=1.03,
         )
@@ -122,12 +122,12 @@ with open(log_path, "w") as log:
         with open(snakemake.output.csv, "w", newline="") as fh:
             writer = csv.writer(fh)
             writer.writerow([
-                "sample", "truth_pipeline", "query_pipeline",
+                "pipeline", "truth_pipeline", "query_pipeline",
                 "fn", "tp", "fp", "base_total", "comp_total",
                 "sensitivity", "precision", "f1",
             ])
             writer.writerow([
-                sample, truth_label, query_label,
+                pipeline, truth_label, query_label,
                 fn, tp, fp, base_total, comp_total,
                 round(rec, 6), round(pre, 6), round(f1, 6),
             ])
