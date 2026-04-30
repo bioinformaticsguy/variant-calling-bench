@@ -29,3 +29,5 @@ __pycache__/
 .snakemake/
 
 /input_data
+
+/backup_results

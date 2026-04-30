@@ -18,11 +18,12 @@ truth:
   sv:
     vcf: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
     bed: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed"
-  # Tier 1: genome-wide, ~10k SVs — better for short-read callers like Manta
+  # T2T Q100 Draft Benchmark (2024-07-18): genome-wide, assembly-based
+  # Better coverage for short-read callers — use _stvar BED for SVs
   # Download first: bash install_truth_set.sh --sv-tier1
   # sv:
-  #   vcf: "input_data/truth/HG002/SV_Tier1/HG002_SVs_Tier1_v0.6.vcf.gz"
-  #   bed: "input_data/truth/HG002/SV_Tier1/HG002_SVs_Tier1_v0.6.bed"
+  #   vcf: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
+  #   bed: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
 
 # ── Pipeline to benchmark ─────────────────────────────────────────────────────
 # The key name ("varient_piper") is used as the output folder name and in
