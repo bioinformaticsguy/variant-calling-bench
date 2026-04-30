@@ -42,7 +42,7 @@ rule normalize_snvs:
     """Split multiallelics (-m-any); left-align against reference if provided."""
     input:
         vcf=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz",
-        tbi=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz.tbi",
+        tbi=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz.tbi",   # keep tbi alive until norm finishes
     output:
         vcf=temp(f"{RESULTS}/{{callset}}/normalized/snv_norm.vcf.gz"),
         tbi=temp(f"{RESULTS}/{{callset}}/normalized/snv_norm.vcf.gz.tbi"),
@@ -73,8 +73,10 @@ rule bcftools_isec:
       0003.vcf – shared, query side (TP)
     """
     input:
-        truth=f"{RESULTS}/truth/normalized/snv_norm.vcf.gz",
-        query=f"{RESULTS}/{{pipeline}}/normalized/snv_norm.vcf.gz",
+        truth    =f"{RESULTS}/truth/normalized/snv_norm.vcf.gz",
+        truth_tbi=f"{RESULTS}/truth/normalized/snv_norm.vcf.gz.tbi",
+        query    =f"{RESULTS}/{{pipeline}}/normalized/snv_norm.vcf.gz",
+        query_tbi=f"{RESULTS}/{{pipeline}}/normalized/snv_norm.vcf.gz.tbi",
     output:
         only_truth  =f"{RESULTS}/{{pipeline}}/isec/snv/0000.vcf",
         only_query  =f"{RESULTS}/{{pipeline}}/isec/snv/0001.vcf",

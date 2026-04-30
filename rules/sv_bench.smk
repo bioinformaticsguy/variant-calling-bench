@@ -46,8 +46,10 @@ rule truvari_bench:
       summary.json   – overall precision / recall / F1
     """
     input:
-        base=f"{RESULTS}/truth/sv/filtered/sv.vcf.gz",
-        comp=f"{RESULTS}/{{pipeline}}/sv/filtered/sv.vcf.gz",
+        base    =f"{RESULTS}/truth/sv/filtered/sv.vcf.gz",
+        base_tbi=f"{RESULTS}/truth/sv/filtered/sv.vcf.gz.tbi",
+        comp    =f"{RESULTS}/{{pipeline}}/sv/filtered/sv.vcf.gz",
+        comp_tbi=f"{RESULTS}/{{pipeline}}/sv/filtered/sv.vcf.gz.tbi",
     output:
         summary=f"{RESULTS}/{{pipeline}}/sv/truvari/summary.json",
         tp_base=f"{RESULTS}/{{pipeline}}/sv/truvari/tp-base.vcf.gz",
