@@ -1,7 +1,6 @@
 name: vcf-bench-bcftools
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
 dependencies:
-  - bcftools>=1.17
-  - htslib>=1.17    # provides bgzip + tabix
+  - bcftools=1.21   # htslib (bgzip + tabix) pulled in automatically as a dep
