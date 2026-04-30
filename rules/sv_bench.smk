@@ -25,7 +25,7 @@ rule filter_svs:
             else ""
         ),
     conda:
-        "/root/miniforge3/envs/dsd_snv_pipeline"
+        f"{ENVS}/bcftools.yaml"
     log:
         f"logs/{{callset}}/filter_svs.log",
     shell:

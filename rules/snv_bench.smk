@@ -28,7 +28,7 @@ rule filter_snvs:
             else ""
         ),
     conda:
-        "/root/miniforge3/envs/dsd_snv_pipeline"
+        f"{ENVS}/bcftools.yaml"
     log:
         f"logs/{{callset}}/filter_snvs.log",
     shell:
@@ -53,7 +53,7 @@ rule normalize_snvs:
             f"-f {config['reference']}" if config.get("reference") else ""
         ),
     conda:
-        "/root/miniforge3/envs/dsd_snv_pipeline"
+        f"{ENVS}/bcftools.yaml"
     log:
         f"logs/{{callset}}/normalize_snvs.log",
     shell:
@@ -91,7 +91,7 @@ rule bcftools_isec:
             else ""
         ),
     conda:
-        "/root/miniforge3/envs/dsd_snv_pipeline"
+        f"{ENVS}/bcftools.yaml"
     log:
         f"logs/{{pipeline}}/bcftools_isec.log",
     shell:

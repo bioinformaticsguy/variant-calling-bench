@@ -18,6 +18,11 @@ truth:
     vcf: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
     bed: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed"
 
+
+
+
+    
+
 # ── Pipelines to benchmark ───────────────────────────────────────────────────
 # Add a new entry here to benchmark an additional caller / pipeline.
 # `label` is used in plot titles and CSV headers.
