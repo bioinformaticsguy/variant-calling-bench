@@ -25,7 +25,7 @@ set -euo pipefail
 # ── Source URLs ───────────────────────────────────────────────────────────────
 SNV_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/NISTv4.2.1/GRCh38"
 SV_CMRG_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant"
-SV_TIER1_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/NIST_SV_v0.6/GRCh38"
+SV_TIER1_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_HG002_DraftBenchmark_defrabbV0.018-20240716"
 
 # ── Target directories (must match config/config.yaml) ───────────────────────
 SNV_DIR="input_data/truth/HG002/SNV"
@@ -92,22 +92,24 @@ if $DO_SV; then
     echo "  SV CMRG files ready in ${SV_DIR}/"
 fi
 
-# ── SV truth set: Tier 1 (genome-wide, ~10k SVs) ─────────────────────────────
+# ── SV truth set: T2T Q100 Draft Benchmark (genome-wide, 2024-07-18) ──────────
+# Single VCF covers both small and structural variants; separate BEDs per type.
+# For SV benchmarking use the _stvar BED; for SNV use _smvar BED.
 if $DO_SV_TIER1; then
     echo ""
-    echo "=== SV truth set: NIST SV v0.6 GRCh38 (genome-wide Tier 1) ==="
+    echo "=== SV truth set: GIAB T2T Q100 Draft Benchmark GRCh38 (2024-07-18) ==="
     mkdir -p "$SV_TIER1_DIR"
-    download "${SV_TIER1_BASE}/HG002_SVs_Tier1_v0.6.vcf.gz" \
-             "${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.vcf.gz"
-    download "${SV_TIER1_BASE}/HG002_SVs_Tier1_v0.6.vcf.gz.tbi" \
-             "${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.vcf.gz.tbi"
-    download "${SV_TIER1_BASE}/HG002_SVs_Tier1_v0.6.bed" \
-             "${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.bed"
+    download "${SV_TIER1_BASE}/GRCh38_HG2-T2TQ100-V1.1.vcf.gz" \
+             "${SV_TIER1_DIR}/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
+    download "${SV_TIER1_BASE}/GRCh38_HG2-T2TQ100-V1.1.vcf.gz.tbi" \
+             "${SV_TIER1_DIR}/GRCh38_HG2-T2TQ100-V1.1.vcf.gz.tbi"
+    download "${SV_TIER1_BASE}/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed" \
+             "${SV_TIER1_DIR}/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
     echo "  SV Tier 1 files ready in ${SV_TIER1_DIR}/"
     echo ""
-    echo "  To use Tier 1 in the pipeline, update config/config.yaml:"
-    echo "    truth.sv.vcf: ${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.vcf.gz"
-    echo "    truth.sv.bed: ${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.bed"
+    echo "  To use this benchmark, update config/config.yaml truth.sv block:"
+    echo "    vcf: ${SV_TIER1_DIR}/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
+    echo "    bed: ${SV_TIER1_DIR}/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
 fi
 
 echo ""
