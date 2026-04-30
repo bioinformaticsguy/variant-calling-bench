@@ -82,11 +82,6 @@ conda activate snakemake
 
 mkdir -p logs
 
-# Merge stdout + stderr into one timestamped file
-TIMESTAMP=$(date +%Y%m%dT%H%M%S)
-RUN_LOG="logs/run_${TIMESTAMP}_${SLURM_JOB_ID:-interactive}.log"
-exec > >(tee -a "$RUN_LOG") 2>&1
-
 # ── Header ────────────────────────────────────────────────────────────────────
 
 echo "=============================================="
@@ -102,7 +97,6 @@ echo "Memory:            ${SLURM_MEM_PER_NODE:-unknown} MB"
 echo "Config:            $CONFIGFILE"
 [[ -n "$SNV_PATH" ]] && echo "SNV input:         $SNV_PATH"
 [[ -n "$SV_PATH"  ]] && echo "SV  input:         $SV_PATH"
-echo "Run log:           $RUN_LOG"
 echo "=============================================="
 
 # ── Build CLI override config (if --snv / --sv were given) ───────────────────
@@ -200,8 +194,6 @@ else
         tail -50 "$SMLOG"
     fi
 fi
-echo "=============================================="
-echo "Full run log: $RUN_LOG"
 echo "=============================================="
 
 exit "$EXIT_CODE"

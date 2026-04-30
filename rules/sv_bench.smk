@@ -71,7 +71,7 @@ rule truvari_bench:
             else ""
         ),
     conda:
-        "envs/truvari.yaml"
+        f"{ENVS}/truvari.yaml"
     log:
         f"logs/{{pipeline}}/truvari_bench.log",
     shell:

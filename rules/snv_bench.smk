@@ -116,7 +116,7 @@ rule calculate_metrics:
         truth_label=config["truth"]["name"],
         query_label=get_pipeline_label,
     conda:
-        "envs/plotting.yaml"
+        f"{ENVS}/plotting.yaml"
     log:
         f"logs/{{pipeline}}/calculate_metrics.log",
     script:

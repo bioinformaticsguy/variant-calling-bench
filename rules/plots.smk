@@ -19,7 +19,7 @@ rule plot_summary:
         plot=f"{RESULTS}/{{pipeline}}/plots/snv_concordance_summary.png",
         csv =f"{RESULTS}/{{pipeline}}/plots/snv_concordance_summary.csv",
     conda:
-        "envs/plotting.yaml"
+        f"{ENVS}/plotting.yaml"
     log:
         f"logs/{{pipeline}}/plot_summary.log",
     script:
@@ -40,7 +40,7 @@ rule plot_chromosome:
         truth_label=config["truth"]["name"],
         query_label=get_pipeline_label,
     conda:
-        "envs/plotting.yaml"
+        f"{ENVS}/plotting.yaml"
     log:
         f"logs/{{pipeline}}/plot_chromosome.log",
     script:
@@ -58,7 +58,7 @@ rule plot_sv_summary:
         truth_label=config["truth"]["name"],
         query_label=get_pipeline_label,
     conda:
-        "envs/truvari.yaml"
+        f"{ENVS}/truvari.yaml"
     log:
         f"logs/{{pipeline}}/plot_sv_summary.log",
     script:
@@ -79,7 +79,7 @@ rule plot_sv_by_type:
         truth_label=config["truth"]["name"],
         query_label=get_pipeline_label,
     conda:
-        "envs/truvari.yaml"
+        f"{ENVS}/truvari.yaml"
     log:
         f"logs/{{pipeline}}/plot_sv_by_type.log",
     script:

@@ -5,9 +5,17 @@
 #  are available everywhere.
 # ─────────────────────────────────────────────────────────────────────────────
 
+import os
+
 RESULTS       = config.get("results_dir", "results")
 SNV_PIPELINES = config["snv_pipelines"]
 SV_PIPELINES  = config["sv_pipelines"]
+
+# Absolute path to the envs/ directory — conda: directives in included .smk
+# files resolve relative to the .smk file's own directory, not the project
+# root. Using workflow.basedir (= directory of the main Snakefile) avoids the
+# resulting rules/envs/ lookup error.
+ENVS = os.path.join(workflow.basedir, "envs")
 
 
 # ── Input helpers (used as `input:` lambdas in rules) ────────────────────────
