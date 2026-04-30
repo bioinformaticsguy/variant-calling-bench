@@ -2,15 +2,13 @@
 #  snv_bench.smk — SNV benchmarking rules
 #
 #  Steps:
-#    1. filter_snvs   – keep SNVs only; PASS filter on query (not truth)
+#    1. filter_snvs    – keep SNVs only; PASS filter on query (not truth)
 #    2. normalize_snvs – split multiallelics; left-align if reference given
-#    3. bcftools_isec  – split into private-truth / private-query / shared;
-#                        BED restriction applied here using truth high-conf BED
+#    3. bcftools_isec  – split into FN / FP / TP; BED restriction applied here
 #    4. calculate_metrics – sensitivity / precision / F1 → JSON + CSV
 #
-#  Wildcard note:
-#    {callset} = "truth" or a pipeline name (filter + normalize)
-#    {pipeline} = a pipeline name only            (isec + metrics)
+#  Intermediate outputs (filtered/, normalized/) are marked temp() and deleted
+#  automatically after use — only isec, metrics and plots are kept.
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -19,8 +17,8 @@ rule filter_snvs:
     input:
         vcf=get_snv_vcf,
     output:
-        vcf=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz",
-        tbi=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz.tbi",
+        vcf=temp(f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz"),
+        tbi=temp(f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz.tbi"),
     params:
         pass_flag=lambda wc: (
             "-f PASS,."
@@ -46,8 +44,8 @@ rule normalize_snvs:
         vcf=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz",
         tbi=f"{RESULTS}/{{callset}}/filtered/snv.vcf.gz.tbi",
     output:
-        vcf=f"{RESULTS}/{{callset}}/normalized/snv_norm.vcf.gz",
-        tbi=f"{RESULTS}/{{callset}}/normalized/snv_norm.vcf.gz.tbi",
+        vcf=temp(f"{RESULTS}/{{callset}}/normalized/snv_norm.vcf.gz"),
+        tbi=temp(f"{RESULTS}/{{callset}}/normalized/snv_norm.vcf.gz.tbi"),
     params:
         ref_flag=lambda wc: (
             f"-f {config['reference']}" if config.get("reference") else ""

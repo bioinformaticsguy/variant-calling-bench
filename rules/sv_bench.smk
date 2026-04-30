@@ -5,9 +5,7 @@
 #    1. filter_svs    – optionally restrict query to PASS SVs
 #    2. truvari_bench – fuzzy breakpoint matching; BED restriction from truth
 #
-#  Wildcard note:
-#    {callset}  = "truth" or a pipeline name (filter)
-#    {pipeline} = a pipeline name only        (truvari)
+#  Intermediate outputs (sv/filtered/) are marked temp() and deleted after use.
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -16,8 +14,8 @@ rule filter_svs:
     input:
         vcf=get_sv_vcf,
     output:
-        vcf=f"{RESULTS}/{{callset}}/sv/filtered/sv.vcf.gz",
-        tbi=f"{RESULTS}/{{callset}}/sv/filtered/sv.vcf.gz.tbi",
+        vcf=temp(f"{RESULTS}/{{callset}}/sv/filtered/sv.vcf.gz"),
+        tbi=temp(f"{RESULTS}/{{callset}}/sv/filtered/sv.vcf.gz.tbi"),
     params:
         pass_flag=lambda wc: (
             "-f PASS,."
