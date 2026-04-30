@@ -1,11 +1,11 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  Variant Calling Benchmark Config
 #
-#  Truth  = HG002 GIAB benchmark (sensitivity denominator)
-#  Query  = pipelines listed under `pipelines` (precision denominator)
+#  Truth = HG002 GIAB benchmark
+#  Query = VarientPiper in-house pipeline
 #
-#  To benchmark a new pipeline, add an entry under `pipelines` and include its
-#  key in `snv_pipelines` and/or `sv_pipelines`.
+#  SNV and SV benchmarking run automatically for whichever pipelines
+#  have an `snv:` / `sv:` key — no separate list needed.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Truth set: HG002 GIAB ─────────────────────────────────────────────────────
@@ -18,48 +18,31 @@ truth:
     vcf: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
     bed: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed"
 
-
-
-
-    
-
-# ── Pipelines to benchmark ───────────────────────────────────────────────────
-# Add a new entry here to benchmark an additional caller / pipeline.
-# `label` is used in plot titles and CSV headers.
+# ── Pipeline to benchmark ─────────────────────────────────────────────────────
+# The key name ("varient_piper") is used as the output folder name and in
+# plot titles. Add an `snv:` key to enable SNV benchmarking, `sv:` for SV.
+# Override paths at submission time without editing this file:
+#   sbatch submit_job.sh --snv /path/to/HG002.vcf.gz --sv /path/to/HG002.sv.vcf.gz
 pipelines:
-  variant_piper:
-    label: "VariantPiper"
-    snv: "input_data/variant_piper/SNV/HG002.vcf.gz"
-    sv:  "input_data/variant_piper/SV/HG002.manta.sv.vcf.gz"
-  # rare_disease:
-  #   label: "RareDisease"
-  #   snv: "input_data/rare_disease/SNV/HG002.vcf.gz"
-  #   sv:  "input_data/rare_disease/SV/HG002.sv.vcf.gz"
-
-# ── Which pipelines to run SNV benchmarking for ───────────────────────────────
-# Must be keys present in `pipelines` above.
-snv_pipelines:
-  - variant_piper
-
-# ── Which pipelines to run SV benchmarking for ───────────────────────────────
-sv_pipelines:
-  - variant_piper
+  varient_piper:
+    snv: "input_data/varient_piper/SNV/HG002.vcf.gz"
+    sv:  "input_data/varient_piper/SV/HG002.manta.sv.vcf.gz"
 
 # ── Reference FASTA ───────────────────────────────────────────────────────────
-# Used by bcftools norm (left-alignment) and truvari --pctseq.
-# Leave empty to skip both; set pctseq: 0.0 when no reference is provided.
+# For bcftools norm left-alignment and truvari --pctseq.
+# Leave empty to skip; keep pctseq: 0.0 when no reference is set.
 reference: ""
 
 # ── Variant filtering ─────────────────────────────────────────────────────────
-# Restrict query VCFs to PASS variants before comparison.
-# The truth (HG002) is never PASS-filtered — its BED is the quality gate.
+# Restrict VarientPiper output to PASS variants before comparison.
+# Truth (HG002) is never PASS-filtered — its BED is the quality gate.
 filter_pass: true
 
 # ── Truvari SV benchmarking parameters ───────────────────────────────────────
 truvari:
   refdist: 500    # max breakpoint distance (bp)
   pctsize: 0.7    # minimum size similarity [0–1]
-  pctseq:  0.0    # sequence similarity — set to 0.7 only when `reference` is set
+  pctseq:  0.0    # sequence similarity — set to 0.7 only when reference is set
   sizemin: 50     # minimum SV size to consider (bp)
 
 # ── Tool paths ────────────────────────────────────────────────────────────────

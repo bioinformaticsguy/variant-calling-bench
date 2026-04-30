@@ -13,16 +13,9 @@ truth:
     bed: ""
 
 pipelines:
-  variant_piper:
-    label: "VariantPiper"
-    snv: "test_input/variant_piper/SNV/test_HG002.chr22.vcf.gz"
-    sv:  "test_input/variant_piper/SV/test_HG002.chr22.sv.vcf.gz"
-
-snv_pipelines:
-  - variant_piper
-
-sv_pipelines:
-  - variant_piper
+  varient_piper:
+    snv: "test_input/varient_piper/SNV/test_HG002.chr22.vcf.gz"
+    sv:  "test_input/varient_piper/SV/test_HG002.chr22.sv.vcf.gz"
 
 reference: ""
 filter_pass: true

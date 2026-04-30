@@ -7,9 +7,12 @@
 
 import os
 
-RESULTS       = config.get("results_dir", "results")
-SNV_PIPELINES = config["snv_pipelines"]
-SV_PIPELINES  = config["sv_pipelines"]
+RESULTS = config.get("results_dir", "results")
+
+# Derive pipeline lists automatically from whichever pipelines have an snv:/sv:
+# key defined — no need to list them separately in the config.
+SNV_PIPELINES = [name for name, cfg in config["pipelines"].items() if "snv" in cfg]
+SV_PIPELINES  = [name for name, cfg in config["pipelines"].items() if "sv"  in cfg]
 
 # Absolute path to the envs/ directory — conda: directives in included .smk
 # files resolve relative to the .smk file's own directory, not the project
@@ -35,5 +38,5 @@ def get_sv_vcf(wc):
 
 
 def get_pipeline_label(wc):
-    """Return the human-readable label for a pipeline wildcard."""
-    return config["pipelines"][wc.pipeline].get("label", wc.pipeline)
+    """Return the display label for a pipeline — the pipeline key name."""
+    return wc.pipeline

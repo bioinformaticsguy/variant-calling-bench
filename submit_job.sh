@@ -19,26 +19,25 @@
 #   sbatch submit_job.sh [configfile] [OPTIONS]
 #
 # Options:
-#   --pipeline NAME   Pipeline name for CLI-supplied files (default: cli_input)
-#   --label LABEL     Display label in plots/reports       (default: same as NAME)
+#   --pipeline NAME   Key name for CLI-supplied files — used as output folder
+#                     name and in plot titles (default: cli_input)
 #   --snv PATH        SNV VCF (.vcf.gz) to benchmark
 #   --sv  PATH        SV  VCF (.vcf.gz) to benchmark
 #
 # Examples:
-#   # Use config file only (pipelines defined in config/config.yaml):
+#   # Use paths defined in config/config.yaml:
 #   sbatch submit_job.sh
 #   sbatch submit_job.sh config/config_test.yaml
 #
-#   # Benchmark a specific SNV+SV VCF pair from the command line:
+#   # Benchmark a specific SNV+SV VCF pair without editing the config:
 #   sbatch submit_job.sh config/config.yaml \
-#       --pipeline my_caller \
-#       --label    "MyCaller v2.1" \
+#       --pipeline varient_piper_v2 \
 #       --snv      /data/calls/HG002.snv.vcf.gz \
 #       --sv       /data/calls/HG002.sv.vcf.gz
 #
-#   # SNV only (no SV benchmarking):
+#   # SNV only (omit --sv → no SV benchmarking):
 #   sbatch submit_job.sh config/config.yaml \
-#       --pipeline my_caller \
+#       --pipeline varient_piper_v2 \
 #       --snv      /data/calls/HG002.snv.vcf.gz
 #
 # Override SLURM resources at submission time:
@@ -51,7 +50,6 @@ set -euo pipefail
 
 CONFIGFILE="config/config.yaml"
 PIPELINE_NAME=""
-PIPELINE_LABEL=""
 SNV_PATH=""
 SV_PATH=""
 
@@ -64,10 +62,9 @@ fi
 # Remaining named flags
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --pipeline|-p) PIPELINE_NAME="$2";  shift 2 ;;
-        --label|-l)    PIPELINE_LABEL="$2"; shift 2 ;;
-        --snv)         SNV_PATH="$2";       shift 2 ;;
-        --sv)          SV_PATH="$2";        shift 2 ;;
+        --pipeline|-p) PIPELINE_NAME="$2"; shift 2 ;;
+        --snv)         SNV_PATH="$2";      shift 2 ;;
+        --sv)          SV_PATH="$2";       shift 2 ;;
         *) echo "ERROR: unknown option '$1'" >&2; exit 1 ;;
     esac
 done
@@ -132,8 +129,7 @@ if [[ -n "$SNV_PATH" || -n "$SV_PATH" ]]; then
         fi
     done
 
-    [[ -z "$PIPELINE_NAME"  ]] && PIPELINE_NAME="cli_input"
-    [[ -z "$PIPELINE_LABEL" ]] && PIPELINE_LABEL="$PIPELINE_NAME"
+    [[ -z "$PIPELINE_NAME" ]] && PIPELINE_NAME="cli_input"
 
     EXTRA_CONFIGFILE=$(mktemp /tmp/bench_override_XXXXXX.yaml)
     trap "rm -f $EXTRA_CONFIGFILE" EXIT
@@ -142,7 +138,6 @@ if [[ -n "$SNV_PATH" || -n "$SV_PATH" ]]; then
         echo "# Auto-generated override — do not edit"
         echo "pipelines:"
         echo "  ${PIPELINE_NAME}:"
-        echo "    label: \"${PIPELINE_LABEL}\""
         [[ -n "$SNV_PATH" ]] && echo "    snv: \"${SNV_PATH}\""
         [[ -n "$SV_PATH"  ]] && echo "    sv:  \"${SV_PATH}\""
         echo ""
