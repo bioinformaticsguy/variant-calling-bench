@@ -14,9 +14,15 @@ truth:
   snv:
     vcf: "input_data/truth/HG002/SNV/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz"
     bed: "input_data/truth/HG002/SNV/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed"
+  # CMRG: 273 medically relevant genes, ~250 SVs — good for clinical validation
   sv:
     vcf: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
     bed: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed"
+  # Tier 1: genome-wide, ~10k SVs — better for short-read callers like Manta
+  # Download first: bash install_truth_set.sh --sv-tier1
+  # sv:
+  #   vcf: "input_data/truth/HG002/SV_Tier1/HG002_SVs_Tier1_v0.6.vcf.gz"
+  #   bed: "input_data/truth/HG002/SV_Tier1/HG002_SVs_Tier1_v0.6.bed"
 
 # ── Pipeline to benchmark ─────────────────────────────────────────────────────
 # The key name ("varient_piper") is used as the output folder name and in

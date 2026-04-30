@@ -2,37 +2,54 @@
 # ─────────────────────────────────────────────────────────────────────────────
 #  install_truth_set.sh
 #
-#  Downloads the HG002 GIAB truth set into the locations expected by the
+#  Downloads the HG002 GIAB truth sets into the locations expected by the
 #  pipeline config (config/config.yaml):
 #
-#    SNV  → input_data/truth/HG002/SNV/   (NISTv4.2.1, GRCh38)
-#    SV   → input_data/truth/HG002/SV/    (CMRG v1.00, GRCh38)
+#    SNV       → input_data/truth/HG002/SNV/        (NISTv4.2.1, GRCh38)
+#    SV CMRG   → input_data/truth/HG002/SV/         (CMRG v1.00, GRCh38)
+#                273 medically relevant genes, ~250 SVs
+#    SV Tier1  → input_data/truth/HG002/SV_Tier1/   (NIST SV v0.6, GRCh38)
+#                Genome-wide, ~10k SVs — better coverage for short-read callers
 #
 #  Usage:
-#    bash install_truth_set.sh           # download both SNV and SV
-#    bash install_truth_set.sh --snv     # SNV only
-#    bash install_truth_set.sh --sv      # SV only
+#    bash install_truth_set.sh                    # SNV + SV CMRG (default)
+#    bash install_truth_set.sh --snv              # SNV only
+#    bash install_truth_set.sh --sv               # SV CMRG only
+#    bash install_truth_set.sh --sv-tier1         # SV Tier 1 only
+#    bash install_truth_set.sh --all              # SNV + SV CMRG + SV Tier 1
+#    bash install_truth_set.sh --snv --sv-tier1   # combine flags freely
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
 
 # ── Source URLs ───────────────────────────────────────────────────────────────
 SNV_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/NISTv4.2.1/GRCh38"
-SV_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant"
+SV_CMRG_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/CMRG_v1.00/GRCh38/StructuralVariant"
+SV_TIER1_BASE="https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/AshkenazimTrio/HG002_NA24385_son/NIST_SV_v0.6/GRCh38"
 
 # ── Target directories (must match config/config.yaml) ───────────────────────
 SNV_DIR="input_data/truth/HG002/SNV"
 SV_DIR="input_data/truth/HG002/SV"
+SV_TIER1_DIR="input_data/truth/HG002/SV_Tier1"
 
 # ── Parse flags ───────────────────────────────────────────────────────────────
-DO_SNV=true
-DO_SV=true
-if [[ $# -gt 0 ]]; then
-    case "$1" in
-        --snv) DO_SV=false ;;
-        --sv)  DO_SNV=false ;;
-        *) echo "Usage: $0 [--snv|--sv]"; exit 1 ;;
-    esac
+DO_SNV=false
+DO_SV=false
+DO_SV_TIER1=false
+
+if [[ $# -eq 0 ]]; then
+    DO_SNV=true
+    DO_SV=true
+else
+    for flag in "$@"; do
+        case "$flag" in
+            --snv)      DO_SNV=true ;;
+            --sv)       DO_SV=true ;;
+            --sv-tier1) DO_SV_TIER1=true ;;
+            --all)      DO_SNV=true; DO_SV=true; DO_SV_TIER1=true ;;
+            *) echo "Usage: $0 [--snv] [--sv] [--sv-tier1] [--all]"; exit 1 ;;
+        esac
+    done
 fi
 
 # ── Helper: download a single file, skip if already present ──────────────────
@@ -61,18 +78,36 @@ if $DO_SNV; then
     echo "  SNV files ready in ${SNV_DIR}/"
 fi
 
-# ── SV truth set ──────────────────────────────────────────────────────────────
+# ── SV truth set: CMRG (medically relevant genes, ~250 SVs) ──────────────────
 if $DO_SV; then
     echo ""
-    echo "=== SV truth set (CMRG v1.00 GRCh38) ==="
+    echo "=== SV truth set: CMRG v1.00 GRCh38 (273 medically relevant genes) ==="
     mkdir -p "$SV_DIR"
-    download "${SV_BASE}/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz" \
+    download "${SV_CMRG_BASE}/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz" \
              "${SV_DIR}/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
-    download "${SV_BASE}/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz.tbi" \
+    download "${SV_CMRG_BASE}/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz.tbi" \
              "${SV_DIR}/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz.tbi"
-    download "${SV_BASE}/HG002_GRCh38_CMRG_SV_v1.00.bed" \
+    download "${SV_CMRG_BASE}/HG002_GRCh38_CMRG_SV_v1.00.bed" \
              "${SV_DIR}/HG002_GRCh38_CMRG_SV_v1.00.bed"
-    echo "  SV files ready in ${SV_DIR}/"
+    echo "  SV CMRG files ready in ${SV_DIR}/"
+fi
+
+# ── SV truth set: Tier 1 (genome-wide, ~10k SVs) ─────────────────────────────
+if $DO_SV_TIER1; then
+    echo ""
+    echo "=== SV truth set: NIST SV v0.6 GRCh38 (genome-wide Tier 1) ==="
+    mkdir -p "$SV_TIER1_DIR"
+    download "${SV_TIER1_BASE}/HG002_SVs_Tier1_v0.6.vcf.gz" \
+             "${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.vcf.gz"
+    download "${SV_TIER1_BASE}/HG002_SVs_Tier1_v0.6.vcf.gz.tbi" \
+             "${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.vcf.gz.tbi"
+    download "${SV_TIER1_BASE}/HG002_SVs_Tier1_v0.6.bed" \
+             "${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.bed"
+    echo "  SV Tier 1 files ready in ${SV_TIER1_DIR}/"
+    echo ""
+    echo "  To use Tier 1 in the pipeline, update config/config.yaml:"
+    echo "    truth.sv.vcf: ${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.vcf.gz"
+    echo "    truth.sv.bed: ${SV_TIER1_DIR}/HG002_SVs_Tier1_v0.6.bed"
 fi
 
 echo ""
