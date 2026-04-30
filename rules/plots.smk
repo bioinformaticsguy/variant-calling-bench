@@ -21,7 +21,7 @@ rule plot_summary:
     conda:
         f"{ENVS}/plotting.yaml"
     log:
-        f"logs/{{pipeline}}/plot_summary.log",
+        f"{RESULTS}/{{pipeline}}/logs/plot_summary.log",
     script:
         "scripts/plot_concordance.py"
 
@@ -42,7 +42,7 @@ rule plot_chromosome:
     conda:
         f"{ENVS}/plotting.yaml"
     log:
-        f"logs/{{pipeline}}/plot_chromosome.log",
+        f"{RESULTS}/{{pipeline}}/logs/plot_chromosome.log",
     script:
         "scripts/plot_chromosome.py"
 
@@ -60,7 +60,7 @@ rule plot_sv_summary:
     conda:
         f"{ENVS}/truvari.yaml"
     log:
-        f"logs/{{pipeline}}/plot_sv_summary.log",
+        f"{RESULTS}/{{pipeline}}/logs/plot_sv_summary.log",
     script:
         "scripts/plot_sv_summary.py"
 
@@ -81,6 +81,6 @@ rule plot_sv_by_type:
     conda:
         f"{ENVS}/truvari.yaml"
     log:
-        f"logs/{{pipeline}}/plot_sv_by_type.log",
+        f"{RESULTS}/{{pipeline}}/logs/plot_sv_by_type.log",
     script:
         "scripts/plot_sv_by_type.py"

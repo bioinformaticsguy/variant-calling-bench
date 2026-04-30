@@ -27,7 +27,7 @@ rule filter_svs:
     conda:
         f"{ENVS}/bcftools.yaml"
     log:
-        f"logs/{{callset}}/filter_svs.log",
+        f"{RESULTS}/{{callset}}/logs/filter_svs.log",
     shell:
         """
         mkdir -p $(dirname {log})
@@ -73,7 +73,7 @@ rule truvari_bench:
     conda:
         f"{ENVS}/truvari.yaml"
     log:
-        f"logs/{{pipeline}}/truvari_bench.log",
+        f"{RESULTS}/{{pipeline}}/logs/truvari_bench.log",
     shell:
         """
         mkdir -p $(dirname {log})

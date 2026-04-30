@@ -30,7 +30,7 @@ rule filter_snvs:
     conda:
         f"{ENVS}/bcftools.yaml"
     log:
-        f"logs/{{callset}}/filter_snvs.log",
+        f"{RESULTS}/{{callset}}/logs/filter_snvs.log",
     shell:
         """
         mkdir -p $(dirname {log})
@@ -55,7 +55,7 @@ rule normalize_snvs:
     conda:
         f"{ENVS}/bcftools.yaml"
     log:
-        f"logs/{{callset}}/normalize_snvs.log",
+        f"{RESULTS}/{{callset}}/logs/normalize_snvs.log",
     shell:
         """
         mkdir -p $(dirname {log})
@@ -93,7 +93,7 @@ rule bcftools_isec:
     conda:
         f"{ENVS}/bcftools.yaml"
     log:
-        f"logs/{{pipeline}}/bcftools_isec.log",
+        f"{RESULTS}/{{pipeline}}/logs/bcftools_isec.log",
     shell:
         """
         mkdir -p $(dirname {log})
@@ -118,6 +118,6 @@ rule calculate_metrics:
     conda:
         f"{ENVS}/plotting.yaml"
     log:
-        f"logs/{{pipeline}}/calculate_metrics.log",
+        f"{RESULTS}/{{pipeline}}/logs/calculate_metrics.log",
     script:
         "scripts/calculate_metrics.py"
