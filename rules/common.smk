@@ -18,7 +18,8 @@ SV_PIPELINES  = [name for name, cfg in config["pipelines"].items() if "sv"  in c
 # files resolve relative to the .smk file's own directory, not the project
 # root. Using workflow.basedir (= directory of the main Snakefile) avoids the
 # resulting rules/envs/ lookup error.
-ENVS = os.path.join(workflow.basedir, "envs")
+ENVS    = os.path.join(workflow.basedir, "envs")
+SCRIPTS = os.path.join(workflow.basedir, "scripts")
 
 
 # ── Input helpers (used as `input:` lambdas in rules) ────────────────────────

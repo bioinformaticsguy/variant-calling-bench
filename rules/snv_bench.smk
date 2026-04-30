@@ -120,4 +120,4 @@ rule calculate_metrics:
     log:
         f"{RESULTS}/{{pipeline}}/logs/calculate_metrics.log",
     script:
-        "scripts/calculate_metrics.py"
+        f"{SCRIPTS}/calculate_metrics.py"

@@ -23,7 +23,7 @@ rule plot_summary:
     log:
         f"{RESULTS}/{{pipeline}}/logs/plot_summary.log",
     script:
-        "scripts/plot_concordance.py"
+        f"{SCRIPTS}/plot_concordance.py"
 
 
 rule plot_chromosome:
@@ -44,7 +44,7 @@ rule plot_chromosome:
     log:
         f"{RESULTS}/{{pipeline}}/logs/plot_chromosome.log",
     script:
-        "scripts/plot_chromosome.py"
+        f"{SCRIPTS}/plot_chromosome.py"
 
 
 rule plot_sv_summary:
@@ -62,7 +62,7 @@ rule plot_sv_summary:
     log:
         f"{RESULTS}/{{pipeline}}/logs/plot_sv_summary.log",
     script:
-        "scripts/plot_sv_summary.py"
+        f"{SCRIPTS}/plot_sv_summary.py"
 
 
 rule plot_sv_by_type:
@@ -83,4 +83,4 @@ rule plot_sv_by_type:
     log:
         f"{RESULTS}/{{pipeline}}/logs/plot_sv_by_type.log",
     script:
-        "scripts/plot_sv_by_type.py"
+        f"{SCRIPTS}/plot_sv_by_type.py"
