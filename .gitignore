@@ -27,3 +27,5 @@ logs/
 __pycache__/
 *.py[cod]
 .snakemake/
+
+/input_data
