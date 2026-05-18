@@ -25,6 +25,20 @@ truth:
   #   vcf: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
   #   bed: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
 
+# ── SV truth-set comparison ──────────────────────────────────────────────────
+# These truth sets are benchmarked side-by-side for every SV query callset and
+# every enabled GGtyped certainty threshold. Outputs go under:
+#   results/sv_truths/{truthset}/...
+sv_truths:
+  cmrg:
+    name: "HG002 CMRG SV v1.00"
+    vcf: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz"
+    bed: "input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed"
+  sv_tier1:
+    name: "HG002 SV Tier1"
+    vcf: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
+    bed: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
+
 # ── Pipeline to benchmark ─────────────────────────────────────────────────────
 # The key name ("varient_piper") is used as the output folder name and in
 # plot titles. Add an `snv:` key to enable SNV benchmarking, `sv:` for SV.
@@ -34,6 +48,17 @@ pipelines:
   varient_piper:
     snv: "input_data/varient_piper/SNV/HG002.vcf.gz"
     sv:  "input_data/varient_piper/SV/HG002.manta.sv.vcf.gz"
+
+# ── GGtyped SV certainty threshold comparison ────────────────────────────────
+# Use the annotated VCF because it retains all genotyped calls plus the
+# GGT_MAX_CERT/GGT_GT annotations needed to apply multiple certainty cutoffs.
+ggtyped:
+  enabled: true
+  name: "GGtyped"
+  vcf: "input_data/GGTyped/out_ggtyper_annotated.vcf.gz"
+  genotype_tsv: "input_data/GGTyped/out_genotype_results.tsv.gz"
+  certainty_thresholds: [0.5, 0.7, 0.8, 0.9, 0.95]
+  keep_genotypes: ["REF/VAR", "VAR/VAR"]
 
 # ── Reference FASTA ───────────────────────────────────────────────────────────
 # For bcftools norm left-alignment and truvari --pctseq.

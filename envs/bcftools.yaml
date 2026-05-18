@@ -3,4 +3,5 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
+  - python>=3.10
   - bcftools=1.21   # htslib (bgzip + tabix) pulled in automatically as a dep

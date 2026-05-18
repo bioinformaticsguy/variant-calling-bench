@@ -84,3 +84,138 @@ rule plot_sv_by_type:
         f"{RESULTS}/{{pipeline}}/logs/plot_sv_by_type.log",
     script:
         f"{SCRIPTS}/plot_sv_by_type.py"
+
+
+rule plot_ggtyped_sv_summary:
+    """Overall SV concordance for one GGtyped certainty threshold."""
+    input:
+        summary=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/summary.json",
+    output:
+        plot=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/plots/sv_concordance_summary.png",
+        csv=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/plots/sv_concordance_summary.csv",
+    params:
+        truth_label=config["truth"]["name"],
+        query_label=lambda wc: f"{config['ggtyped'].get('name', 'GGtyped')} cert>={wc.threshold}",
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/logs/plot_sv_summary.log",
+    script:
+        f"{SCRIPTS}/plot_sv_summary.py"
+
+
+rule plot_ggtyped_certainty_comparison:
+    """Combined CSV and plot comparing all GGtyped certainty thresholds."""
+    input:
+        summaries=expand(
+            f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/summary.json",
+            threshold=GGTYPED_THRESHOLDS,
+        ),
+    output:
+        csv=f"{RESULTS}/ggtyped/certainty_thresholds/combined_sv_metrics.csv",
+        plot=f"{RESULTS}/ggtyped/certainty_thresholds/combined_sv_metrics.png",
+    params:
+        thresholds=GGTYPED_THRESHOLDS,
+        truth_label=config["truth"]["name"],
+        query_label=config.get("ggtyped", {}).get("name", "GGtyped"),
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/ggtyped/certainty_thresholds/logs/plot_certainty_comparison.log",
+    script:
+        f"{SCRIPTS}/plot_ggtyped_certainty_comparison.py"
+
+
+rule plot_sv_truthset_summary:
+    """Overall SV concordance for one pipeline against one SV truth set."""
+    input:
+        summary=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/summary.json",
+    output:
+        plot=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/plots/sv_concordance_summary.png",
+        csv=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/plots/sv_concordance_summary.csv",
+    params:
+        truth_label=get_sv_truth_label,
+        query_label=get_pipeline_label,
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/logs/plot_sv_summary.log",
+    script:
+        f"{SCRIPTS}/plot_sv_summary.py"
+
+
+rule plot_sv_truthset_by_type:
+    """Per-SVTYPE concordance for one pipeline against one SV truth set."""
+    input:
+        tp_base=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/tp-base.vcf.gz",
+        fp=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/fp.vcf.gz",
+        fn=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/fn.vcf.gz",
+    output:
+        plot=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/plots/sv_concordance_by_type.png",
+        csv=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/plots/sv_concordance_by_type.csv",
+    params:
+        bcftools=config["bcftools_bin"],
+        truth_label=get_sv_truth_label,
+        query_label=get_pipeline_label,
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/logs/plot_sv_by_type.log",
+    script:
+        f"{SCRIPTS}/plot_sv_by_type.py"
+
+
+rule plot_ggtyped_sv_truthset_summary:
+    """Overall SV concordance for one GGtyped threshold against one SV truth set."""
+    input:
+        summary=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/summary.json",
+    output:
+        plot=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/plots/sv_concordance_summary.png",
+        csv=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/plots/sv_concordance_summary.csv",
+    params:
+        truth_label=get_sv_truth_label,
+        query_label=lambda wc: f"{config['ggtyped'].get('name', 'GGtyped')} cert>={wc.threshold}",
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/logs/plot_sv_summary.log",
+    script:
+        f"{SCRIPTS}/plot_sv_summary.py"
+
+
+rule plot_combined_sv_truthset_comparison:
+    """Combined CSV and plot comparing all SV truth sets and query callsets."""
+    input:
+        summaries=[
+            (
+                f"{RESULTS}/sv_truths/{item['truthset']}/{item['query']}/sv/truvari/summary.json"
+                if item["kind"] == "pipeline"
+                else f"{RESULTS}/sv_truths/{item['truthset']}/ggtyped/certainty_thresholds/{item['threshold']}/sv/truvari/summary.json"
+            )
+            for item in ALL_SV_TRUTH_COMPARISONS
+        ],
+    output:
+        csv=f"{RESULTS}/sv_truths/combined_sv_truthset_metrics.csv",
+        plot=f"{RESULTS}/sv_truths/combined_sv_truthset_metrics.png",
+    params:
+        truthsets=[item["truthset"] for item in ALL_SV_TRUTH_COMPARISONS],
+        truth_labels=[
+            SV_TRUTH_CONFIGS[item["truthset"]].get("name", item["truthset"])
+            for item in ALL_SV_TRUTH_COMPARISONS
+        ],
+        query_labels=[
+            (
+                item["query"]
+                if item["kind"] == "pipeline"
+                else f"{config.get('ggtyped', {}).get('name', 'GGtyped')} cert>={item['threshold']}"
+            )
+            for item in ALL_SV_TRUTH_COMPARISONS
+        ],
+        query_kinds=[item["kind"] for item in ALL_SV_TRUTH_COMPARISONS],
+        thresholds=[item["threshold"] for item in ALL_SV_TRUTH_COMPARISONS],
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_truths/logs/plot_combined_sv_truthset_comparison.log",
+    script:
+        f"{SCRIPTS}/plot_combined_sv_truthset_comparison.py"

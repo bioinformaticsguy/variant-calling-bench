@@ -34,7 +34,12 @@ with open(log_path, "w") as log:
         f1  = tv.get("f1",        tv.get("F1",        0))
         base_total  = tv.get("base cnt", tp + fn)
         comp_total  = tv.get("comp cnt", tp + fp)
-        pipeline    = str(snakemake.wildcards.pipeline)
+        pipeline = getattr(
+            snakemake.wildcards,
+            "pipeline",
+            f"ggtyped_cert_{getattr(snakemake.wildcards, 'threshold', 'NA')}",
+        )
+        pipeline = str(pipeline)
         truth_label = snakemake.params.truth_label
         query_label = snakemake.params.query_label
 

@@ -89,3 +89,188 @@ rule truvari_bench:
             --pctseq  {params.pctseq} \
             --sizemin {params.sizemin} 2>{log}
         """
+
+
+rule filter_ggtyped_certainty:
+    """Filter GGtyped annotated SVs by genotype certainty threshold."""
+    input:
+        vcf=lambda wc: config["ggtyped"]["vcf"],
+    output:
+        vcf=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/filtered/sv.vcf.gz",
+        tbi=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/filtered/sv.vcf.gz.tbi",
+    params:
+        threshold=lambda wc: wc.threshold,
+        keep_genotypes=lambda wc: ",".join(config["ggtyped"].get("keep_genotypes", ["REF/VAR", "VAR/VAR"])),
+    conda:
+        f"{ENVS}/bcftools.yaml"
+    log:
+        f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/logs/filter_ggtyped_certainty.log",
+    shell:
+        """
+        mkdir -p $(dirname {log}) $(dirname {output.vcf})
+        python {SCRIPTS}/filter_ggtyped_vcf.py \
+            --input {input.vcf} \
+            --threshold {params.threshold} \
+            --keep-genotypes {params.keep_genotypes} 2>{log} \
+            | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
+        """
+
+
+rule truvari_bench_ggtyped_certainty:
+    """Benchmark one GGtyped certainty threshold against the SV truth set."""
+    input:
+        base=f"{RESULTS}/truth/sv/filtered/sv.vcf.gz",
+        base_tbi=f"{RESULTS}/truth/sv/filtered/sv.vcf.gz.tbi",
+        comp=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/filtered/sv.vcf.gz",
+        comp_tbi=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/filtered/sv.vcf.gz.tbi",
+    output:
+        summary=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/summary.json",
+        tp_base=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/tp-base.vcf.gz",
+        tp_comp=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/tp-comp.vcf.gz",
+        fp=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/fp.vcf.gz",
+        fn=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/fn.vcf.gz",
+    params:
+        outdir=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari",
+        refdist=config["truvari"]["refdist"],
+        pctsize=config["truvari"]["pctsize"],
+        pctseq=config["truvari"]["pctseq"],
+        sizemin=config["truvari"]["sizemin"],
+        ref_flag=lambda wc: (
+            f"-f {config['reference']}" if config.get("reference") else ""
+        ),
+        bed_flag=lambda wc: (
+            f"--includebed {config['truth']['sv']['bed']}"
+            if config["truth"]["sv"].get("bed")
+            else ""
+        ),
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/logs/truvari_bench.log",
+    shell:
+        """
+        mkdir -p $(dirname {log})
+        rm -rf {params.outdir}
+        truvari bench \
+            -b {input.base} \
+            -c {input.comp} \
+            {params.ref_flag} \
+            {params.bed_flag} \
+            -o {params.outdir} \
+            --refdist {params.refdist} \
+            --pctsize {params.pctsize} \
+            --pctseq  {params.pctseq} \
+            --sizemin {params.sizemin} 2>{log}
+        """
+
+
+rule filter_sv_truthset:
+    """Prepare one configured SV truth set for multi-truth benchmarking."""
+    input:
+        vcf=get_sv_truth_vcf,
+    output:
+        vcf=temp(f"{RESULTS}/sv_truths/{{truthset}}/truth/sv/filtered/sv.vcf.gz"),
+        tbi=temp(f"{RESULTS}/sv_truths/{{truthset}}/truth/sv/filtered/sv.vcf.gz.tbi"),
+    conda:
+        f"{ENVS}/bcftools.yaml"
+    log:
+        f"{RESULTS}/sv_truths/{{truthset}}/truth/logs/filter_svs.log",
+    shell:
+        """
+        mkdir -p $(dirname {log})
+        bcftools view {input.vcf} 2>{log} | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
+        """
+
+
+rule truvari_bench_sv_truthset:
+    """Benchmark a standard SV query pipeline against one configured truth set."""
+    input:
+        base=f"{RESULTS}/sv_truths/{{truthset}}/truth/sv/filtered/sv.vcf.gz",
+        base_tbi=f"{RESULTS}/sv_truths/{{truthset}}/truth/sv/filtered/sv.vcf.gz.tbi",
+        comp=f"{RESULTS}/{{pipeline}}/sv/filtered/sv.vcf.gz",
+        comp_tbi=f"{RESULTS}/{{pipeline}}/sv/filtered/sv.vcf.gz.tbi",
+    output:
+        summary=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/summary.json",
+        tp_base=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/tp-base.vcf.gz",
+        tp_comp=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/tp-comp.vcf.gz",
+        fp=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/fp.vcf.gz",
+        fn=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari/fn.vcf.gz",
+    params:
+        outdir=f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/sv/truvari",
+        refdist=config["truvari"]["refdist"],
+        pctsize=config["truvari"]["pctsize"],
+        pctseq=config["truvari"]["pctseq"],
+        sizemin=config["truvari"]["sizemin"],
+        ref_flag=lambda wc: (
+            f"-f {config['reference']}" if config.get("reference") else ""
+        ),
+        bed_flag=lambda wc: (
+            f"--includebed {get_sv_truth_bed(wc)}" if get_sv_truth_bed(wc) else ""
+        ),
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_truths/{{truthset}}/{{pipeline}}/logs/truvari_bench.log",
+    shell:
+        """
+        mkdir -p $(dirname {log})
+        rm -rf {params.outdir}
+        truvari bench \
+            -b {input.base} \
+            -c {input.comp} \
+            {params.ref_flag} \
+            {params.bed_flag} \
+            -o {params.outdir} \
+            --refdist {params.refdist} \
+            --pctsize {params.pctsize} \
+            --pctseq  {params.pctseq} \
+            --sizemin {params.sizemin} 2>{log}
+        """
+
+
+rule truvari_bench_ggtyped_sv_truthset:
+    """Benchmark one GGtyped threshold against one configured SV truth set."""
+    input:
+        base=f"{RESULTS}/sv_truths/{{truthset}}/truth/sv/filtered/sv.vcf.gz",
+        base_tbi=f"{RESULTS}/sv_truths/{{truthset}}/truth/sv/filtered/sv.vcf.gz.tbi",
+        comp=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/filtered/sv.vcf.gz",
+        comp_tbi=f"{RESULTS}/ggtyped/certainty_thresholds/{{threshold}}/sv/filtered/sv.vcf.gz.tbi",
+    output:
+        summary=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/summary.json",
+        tp_base=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/tp-base.vcf.gz",
+        tp_comp=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/tp-comp.vcf.gz",
+        fp=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/fp.vcf.gz",
+        fn=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari/fn.vcf.gz",
+    params:
+        outdir=f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/sv/truvari",
+        refdist=config["truvari"]["refdist"],
+        pctsize=config["truvari"]["pctsize"],
+        pctseq=config["truvari"]["pctseq"],
+        sizemin=config["truvari"]["sizemin"],
+        ref_flag=lambda wc: (
+            f"-f {config['reference']}" if config.get("reference") else ""
+        ),
+        bed_flag=lambda wc: (
+            f"--includebed {get_sv_truth_bed(wc)}" if get_sv_truth_bed(wc) else ""
+        ),
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_truths/{{truthset}}/ggtyped/certainty_thresholds/{{threshold}}/logs/truvari_bench.log",
+    shell:
+        """
+        mkdir -p $(dirname {log})
+        rm -rf {params.outdir}
+        truvari bench \
+            -b {input.base} \
+            -c {input.comp} \
+            {params.ref_flag} \
+            {params.bed_flag} \
+            -o {params.outdir} \
+            --refdist {params.refdist} \
+            --pctsize {params.pctsize} \
+            --pctseq  {params.pctseq} \
+            --sizemin {params.sizemin} 2>{log}
+        """
