@@ -3,8 +3,8 @@
 #SBATCH --partition=shortterm
 #SBATCH --time=3-00:00:00
 #SBATCH --nodes=1
-#SBATCH -c 16
-#SBATCH --mem=128GB
+#SBATCH -c 8
+#SBATCH --mem=32GB
 #SBATCH --job-name=vcf-bench
 #SBATCH --output=logs/slurm_%j_%u_%N.out
 #SBATCH --error=logs/slurm_%j_%u_%N.err
@@ -41,7 +41,7 @@
 #       --snv      /data/calls/HG002.snv.vcf.gz
 #
 # Override SLURM resources at submission time:
-#   sbatch --mem=200GB --time=1-00:00:00 submit_job.sh config/config.yaml
+#   sbatch --cpus-per-task=16 --mem=64GB --time=1-00:00:00 submit_job.sh config/config.yaml
 # ============================================================
 
 set -euo pipefail
@@ -94,7 +94,7 @@ echo "Node:              $(hostname)"
 echo "Working directory: $(pwd)"
 echo "Snakemake version: $(snakemake --version)"
 echo "Date:              $(date)"
-echo "CPUs:              ${SLURM_CPUS_PER_TASK:-16}"
+echo "CPUs:              ${SLURM_CPUS_PER_TASK:-8}"
 echo "Memory:            ${SLURM_MEM_PER_NODE:-unknown} MB"
 echo "Config:            $CONFIGFILE"
 [[ -n "$SNV_PATH" ]] && echo "SNV input:         $SNV_PATH"
@@ -174,7 +174,7 @@ snakemake \
     "${CONFIGFILE_ARGS[@]}" \
     --use-conda \
     --conda-prefix /work/hassan/hassan/snakemake-conda \
-    --cores "${SLURM_CPUS_PER_TASK:-16}" \
+    --cores "${SLURM_CPUS_PER_TASK:-8}" \
     --rerun-incomplete \
     --nolock
 

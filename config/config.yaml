@@ -2,7 +2,7 @@
 #  Variant Calling Benchmark Config
 #
 #  Truth = HG002 GIAB benchmark
-#  Query = VarientPiper in-house pipeline
+#  Query = GGtyped by default; optional pipeline VCFs can be added below
 #
 #  SNV and SV benchmarking run automatically for whichever pipelines
 #  have an `snv:` / `sv:` key — no separate list needed.
@@ -39,15 +39,12 @@ sv_truths:
     vcf: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1.vcf.gz"
     bed: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
 
-# ── Pipeline to benchmark ─────────────────────────────────────────────────────
-# The key name ("varient_piper") is used as the output folder name and in
-# plot titles. Add an `snv:` key to enable SNV benchmarking, `sv:` for SV.
-# Override paths at submission time without editing this file:
-#   sbatch submit_job.sh --snv /path/to/HG002.vcf.gz --sv /path/to/HG002.sv.vcf.gz
-pipelines:
-  varient_piper:
-    snv: "input_data/varient_piper/SNV/HG002.vcf.gz"
-    sv:  "input_data/varient_piper/SV/HG002.manta.sv.vcf.gz"
+# ── Optional non-GGtyped pipelines to benchmark ───────────────────────────────
+# Add an `snv:` key to enable SNV benchmarking, `sv:` for SV benchmarking.
+# The current default input_data tree only contains GGtyped outputs, so this is
+# empty by default. You can still provide a pipeline at submission time:
+#   sbatch submit_job.sh --pipeline my_calls --snv /path/to/HG002.vcf.gz --sv /path/to/HG002.sv.vcf.gz
+pipelines: {}
 
 # ── GGtyped SV certainty threshold comparison ────────────────────────────────
 # Use the annotated VCF because it retains all genotyped calls plus the
@@ -66,7 +63,7 @@ ggtyped:
 reference: ""
 
 # ── Variant filtering ─────────────────────────────────────────────────────────
-# Restrict VarientPiper output to PASS variants before comparison.
+# Restrict non-truth query VCFs to PASS variants before comparison.
 # Truth (HG002) is never PASS-filtered — its BED is the quality gate.
 filter_pass: true
 

@@ -10,11 +10,13 @@ The active config runs these comparisons:
 
 | Query callset | Variant type | Truth set(s) | Output area |
 | --- | --- | --- | --- |
-| `varient_piper` HG002 | SNV | GIAB HG002 v4.2.1 SNV | `results/varient_piper/` |
-| `varient_piper` HG002 | SV | Active `truth.sv` CMRG block | `results/varient_piper/` |
 | `GGtyped` HG002 | SV | Active `truth.sv` CMRG block | `results/ggtyped/` |
-| `varient_piper` HG002 | SV | CMRG and SV_Tier1 | `results/sv_truths/` |
 | `GGtyped` HG002 | SV | CMRG and SV_Tier1 | `results/sv_truths/` |
+
+The default `pipelines:` block is empty because the current `input_data/` tree
+contains GGtyped outputs and truth sets, but no VarientPiper VCFs. Additional
+SNV/SV callsets can still be added under `pipelines:` or supplied with
+`submit_job.sh --pipeline ... --snv ... --sv ...`.
 
 The side-by-side SV truth-set comparison is controlled by `sv_truths` in
 `config/config.yaml`:
@@ -31,7 +33,7 @@ sv_truths:
     bed: "input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed"
 ```
 
-Both VarientPiper SV calls and every enabled GGtyped certainty threshold are
+Every configured SV pipeline and every enabled GGtyped certainty threshold are
 benchmarked against every truth set in this block.
 
 ## Required Inputs
@@ -49,13 +51,11 @@ input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.vcf.gz
 input_data/truth/HG002/SV/HG002_GRCh38_CMRG_SV_v1.00.bed
 input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1.vcf.gz
 input_data/truth/HG002/SV_Tier1/GRCh38_HG2-T2TQ100-V1.1_stvar.benchmark.bed
-input_data/varient_piper/SV/HG002.manta.sv.vcf.gz
 input_data/GGTyped/out_ggtyper_annotated.vcf.gz
 ```
 
-The current workspace has the CMRG files and GGtyped files, but the configured
-SV_Tier1 `GRCh38_HG2-T2TQ100-V1.1.*` files must be downloaded before the full
-multi-truth run can complete.
+For optional non-GGtyped pipeline benchmarking, add that callset under
+`pipelines:` or pass it to `submit_job.sh`.
 
 ## Running
 
@@ -63,7 +63,7 @@ multi-truth run can complete.
 # Dry run
 snakemake -n --use-conda --cores 4
 
-# Full run: SNV, old single-truth SV outputs, multi-truth SV outputs, all plots
+# Full run: GGtyped single-truth outputs, multi-truth outputs, all plots
 snakemake --use-conda --cores 4
 
 # Combined CMRG vs SV_Tier1 plot and CSV only
@@ -71,9 +71,9 @@ snakemake --use-conda --cores 4 \
   results/sv_truths/combined_sv_truthset_metrics.png \
   results/sv_truths/combined_sv_truthset_metrics.csv
 
-# One SV_Tier1 VarientPiper benchmark
+# One SV_Tier1 benchmark for an optional configured pipeline
 snakemake --use-conda --cores 4 \
-  results/sv_truths/sv_tier1/varient_piper/sv/truvari/summary.json
+  results/sv_truths/sv_tier1/{pipeline}/sv/truvari/summary.json
 
 # One SV_Tier1 GGtyped threshold benchmark
 snakemake --use-conda --cores 4 \
