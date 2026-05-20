@@ -219,3 +219,74 @@ rule plot_combined_sv_truthset_comparison:
         f"{RESULTS}/sv_truths/logs/plot_combined_sv_truthset_comparison.log",
     script:
         f"{SCRIPTS}/plot_combined_sv_truthset_comparison.py"
+
+
+rule plot_sv_benchmark_summary:
+    """Overall SV concordance for one generic truth/query benchmark."""
+    input:
+        summary=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/summary.json",
+    output:
+        plot=f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_summary.png",
+        csv=f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_summary.csv",
+    params:
+        truth_label=get_sv_benchmark_truth_label,
+        query_label=get_sv_benchmark_query_label,
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_benchmarks/{{benchmark}}/logs/plot_sv_summary.log",
+    script:
+        f"{SCRIPTS}/plot_sv_summary.py"
+
+
+rule plot_sv_benchmark_by_type:
+    """Per-SVTYPE concordance for one generic truth/query benchmark."""
+    input:
+        tp_base=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/tp-base.vcf.gz",
+        fp=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/fp.vcf.gz",
+        fn=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/fn.vcf.gz",
+    output:
+        plot=f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_by_type.png",
+        csv=f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_by_type.csv",
+    params:
+        bcftools=config["bcftools_bin"],
+        truth_label=get_sv_benchmark_truth_label,
+        query_label=get_sv_benchmark_query_label,
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_benchmarks/{{benchmark}}/logs/plot_sv_by_type.log",
+    script:
+        f"{SCRIPTS}/plot_sv_by_type.py"
+
+
+rule plot_combined_sv_benchmark_comparison:
+    """Combined CSV and plot for all configured generic SV benchmarks."""
+    input:
+        summaries=expand(
+            f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/summary.json",
+            benchmark=SV_BENCHMARKS,
+        ),
+    output:
+        csv=f"{RESULTS}/sv_benchmarks/combined_sv_benchmark_metrics.csv",
+        plot=f"{RESULTS}/sv_benchmarks/combined_sv_benchmark_metrics.png",
+    params:
+        benchmarks=SV_BENCHMARKS,
+        benchmark_labels=[
+            SV_BENCHMARK_CONFIGS[name].get("name", name)
+            for name in SV_BENCHMARKS
+        ],
+        truth_labels=[
+            SV_BENCHMARK_CONFIGS[name]["truth"].get("name", "truth")
+            for name in SV_BENCHMARKS
+        ],
+        query_labels=[
+            SV_BENCHMARK_CONFIGS[name]["query"].get("name", "query")
+            for name in SV_BENCHMARKS
+        ],
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_benchmarks/logs/plot_combined_sv_benchmark_comparison.log",
+    script:
+        f"{SCRIPTS}/plot_combined_sv_benchmark_comparison.py"

@@ -37,7 +37,11 @@ with open(log_path, "w") as log:
         pipeline = getattr(
             snakemake.wildcards,
             "pipeline",
-            f"ggtyped_cert_{getattr(snakemake.wildcards, 'threshold', 'NA')}",
+            getattr(
+                snakemake.wildcards,
+                "benchmark",
+                f"ggtyped_cert_{getattr(snakemake.wildcards, 'threshold', 'NA')}",
+            ),
         )
         pipeline = str(pipeline)
         truth_label = snakemake.params.truth_label

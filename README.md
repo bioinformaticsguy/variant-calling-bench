@@ -2,7 +2,8 @@
 
 Snakemake workflow for benchmarking HG002 variant calls against GIAB truth sets.
 It supports SNV benchmarking, SV benchmarking with Truvari, GGtyped certainty
-threshold sweeps, and side-by-side SV truth-set comparison.
+threshold sweeps, side-by-side HG002 SV truth-set comparison, and generic
+truth/query SV benchmarks such as S021-reseq vs S021.
 
 ## Current Comparisons
 
@@ -12,6 +13,7 @@ The active config runs these comparisons:
 | --- | --- | --- | --- |
 | `GGtyped` HG002 | SV | Active `truth.sv` CMRG block | `results/ggtyped/` |
 | `GGtyped` HG002 | SV | CMRG and SV_Tier1 | `results/sv_truths/` |
+| configured `sv_benchmarks` | SV | benchmark-specific truth VCF | `results/sv_benchmarks/` |
 
 The default `pipelines:` block is empty because the current `input_data/` tree
 contains GGtyped outputs and truth sets, but no VarientPiper VCFs. Additional
@@ -57,6 +59,65 @@ input_data/GGTyped/out_ggtyper_annotated.vcf.gz
 For optional non-GGtyped pipeline benchmarking, add that callset under
 `pipelines:` or pass it to `submit_job.sh`.
 
+## Generic SV Benchmarks
+
+Use `sv_benchmarks` when you want to compare arbitrary SV callsets, for example
+treating a resequenced sample as truth and benchmarking the original sample
+against it. The current S021 example is:
+
+```yaml
+sv_benchmarks:
+  s021_reseq_vs_s021:
+    name: "S021 vs S021-reseq"
+    truth:
+      name: "S021-reseq"
+      vcf: "insp/S021-and-S021-reseq/input/sv/S021_reseq.truth.vcf.gz"
+      sample: "SFB166S-S021-2_X92-25-X83-25_WGS-Rv-0310-WGS-Rv-0286"
+    query:
+      name: "S021"
+      vcf: "insp/S021-and-S021-reseq/input/sv/S021.vcf.gz"
+      sample: "SFB166S-S021_X83-25_WGS-Rv-0286"
+    filters:
+      pass_only: true
+      min_size: 50
+      svtypes: ["DEL", "INS", "DUP", "INV", "BND"]
+    truvari:
+      refdist: 500
+      pctsize: 0.7
+      pctseq: 0.0
+      pctovl: 0.0
+      sizemin: 50
+```
+
+`truth.sample` and `query.sample` are optional for single-sample VCFs. For
+multi-sample VCFs, set them to the exact sample names in the VCF header. The
+pipeline keeps only records where the selected sample has a non-reference
+genotype.
+
+To add multiple benchmarks in the same run, add more entries:
+
+```yaml
+sv_benchmarks:
+  s021_reseq_vs_s021:
+    ...
+  sample2_reseq_vs_sample2:
+    name: "sample2 vs sample2-reseq"
+    truth:
+      name: "sample2-reseq"
+      vcf: "input_data/sample2/reseq.truth.vcf.gz"
+      sample: "sample2_reseq"
+    query:
+      name: "sample2"
+      vcf: "input_data/sample2/sample2.vcf.gz"
+      sample: "sample2"
+    filters:
+      pass_only: true
+      min_size: 50
+      svtypes: ["DEL", "INS", "DUP", "INV", "BND"]
+```
+
+All configured benchmarks run together through `rule all`.
+
 ## Running
 
 ```bash
@@ -65,6 +126,15 @@ snakemake -n --use-conda --cores 4
 
 # Full run: GGtyped single-truth outputs, multi-truth outputs, all plots
 snakemake --use-conda --cores 4
+
+# One generic SV benchmark only
+snakemake --use-conda --cores 4 \
+  results/sv_benchmarks/s021_reseq_vs_s021/sv/truvari/summary.json
+
+# Combined plot for all configured generic SV benchmarks
+snakemake --use-conda --cores 4 \
+  results/sv_benchmarks/combined_sv_benchmark_metrics.png \
+  results/sv_benchmarks/combined_sv_benchmark_metrics.csv
 
 # Combined CMRG vs SV_Tier1 plot and CSV only
 snakemake --use-conda --cores 4 \
@@ -118,6 +188,20 @@ results/sv_truths/combined_sv_truthset_metrics.png
 
 `truthset` is currently `cmrg` or `sv_tier1`.
 
+Generic benchmark outputs:
+
+```text
+results/sv_benchmarks/{benchmark}/sv/truvari/summary.json
+results/sv_benchmarks/{benchmark}/sv/truvari/tp-base.vcf.gz
+results/sv_benchmarks/{benchmark}/sv/truvari/tp-comp.vcf.gz
+results/sv_benchmarks/{benchmark}/sv/truvari/fp.vcf.gz
+results/sv_benchmarks/{benchmark}/sv/truvari/fn.vcf.gz
+results/sv_benchmarks/{benchmark}/plots/sv_concordance_summary.png
+results/sv_benchmarks/{benchmark}/plots/sv_concordance_by_type.png
+results/sv_benchmarks/combined_sv_benchmark_metrics.csv
+results/sv_benchmarks/combined_sv_benchmark_metrics.png
+```
+
 ## Workflow Summary
 
 ### SNV Benchmark
@@ -161,6 +245,20 @@ each GGtyped threshold VCF
 
 all multi-truth summaries
   -> plot_combined_sv_truthset_comparison
+```
+
+### Generic SV Benchmark
+
+```text
+each configured sv_benchmarks pair
+  -> filter_sv_benchmark_truth
+  -> filter_sv_benchmark_query
+  -> truvari_bench_sv_benchmark
+  -> plot_sv_benchmark_summary
+  -> plot_sv_benchmark_by_type
+
+all generic benchmark summaries
+  -> plot_combined_sv_benchmark_comparison
 ```
 
 ## GGtyped Filtering

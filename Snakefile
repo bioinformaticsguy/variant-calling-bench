@@ -15,6 +15,7 @@ wildcard_constraints:
     pipeline="[^/]+",
     callset="[^/]+",
     truthset="[^/]+",
+    benchmark="[^/]+",
     threshold="[0-9.]+",
 
 include: "rules/common.smk"
@@ -94,5 +95,13 @@ rule all:
             truthset=SV_TRUTHSETS if GGTYPED_ENABLED else [],
             threshold=GGTYPED_THRESHOLDS if GGTYPED_ENABLED else [],
         ),
-        f"{RESULTS}/sv_truths/combined_sv_truthset_metrics.csv" if SV_TRUTHSETS else [],
-        f"{RESULTS}/sv_truths/combined_sv_truthset_metrics.png" if SV_TRUTHSETS else [],
+        f"{RESULTS}/sv_truths/combined_sv_truthset_metrics.csv" if ALL_SV_TRUTH_COMPARISONS else [],
+        f"{RESULTS}/sv_truths/combined_sv_truthset_metrics.png" if ALL_SV_TRUTH_COMPARISONS else [],
+        # ── Generic truth/query SV benchmarks ───────────────────────────────
+        expand(f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/summary.json", benchmark=SV_BENCHMARKS),
+        expand(f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_summary.png", benchmark=SV_BENCHMARKS),
+        expand(f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_summary.csv", benchmark=SV_BENCHMARKS),
+        expand(f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_by_type.png", benchmark=SV_BENCHMARKS),
+        expand(f"{RESULTS}/sv_benchmarks/{{benchmark}}/plots/sv_concordance_by_type.csv", benchmark=SV_BENCHMARKS),
+        f"{RESULTS}/sv_benchmarks/combined_sv_benchmark_metrics.csv" if SV_BENCHMARKS else [],
+        f"{RESULTS}/sv_benchmarks/combined_sv_benchmark_metrics.png" if SV_BENCHMARKS else [],

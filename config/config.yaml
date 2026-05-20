@@ -46,6 +46,32 @@ sv_truths:
 #   sbatch submit_job.sh --pipeline my_calls --snv /path/to/HG002.vcf.gz --sv /path/to/HG002.sv.vcf.gz
 pipelines: {}
 
+# ── Generic SV benchmark pairs ────────────────────────────────────────────────
+# Each entry compares one truth VCF against one query/test VCF. This is useful
+# for sample-vs-reseq comparisons such as S021_reseq (truth) vs S021 (query).
+# Add more entries under sv_benchmarks to run multiple benchmarks together.
+sv_benchmarks:
+  s021_reseq_vs_s021:
+    name: "S021 vs S021-reseq"
+    truth:
+      name: "S021-reseq"
+      vcf: "insp/S021-and-S021-reseq/input/sv/S021_reseq.truth.vcf.gz"
+      sample: "SFB166S-S021-2_X92-25-X83-25_WGS-Rv-0310-WGS-Rv-0286"
+    query:
+      name: "S021"
+      vcf: "insp/S021-and-S021-reseq/input/sv/S021.vcf.gz"
+      sample: "SFB166S-S021_X83-25_WGS-Rv-0286"
+    filters:
+      pass_only: true
+      min_size: 50
+      svtypes: ["DEL", "INS", "DUP", "INV", "BND"]
+    truvari:
+      refdist: 500
+      pctsize: 0.7
+      pctseq: 0.0
+      pctovl: 0.0
+      sizemin: 50
+
 # ── GGtyped SV certainty threshold comparison ────────────────────────────────
 # Use the annotated VCF because it retains all genotyped calls plus the
 # GGT_MAX_CERT/GGT_GT annotations needed to apply multiple certainty cutoffs.

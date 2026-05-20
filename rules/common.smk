@@ -40,6 +40,9 @@ GGTYPED_SV_TRUTH_COMPARISONS = [
 ]
 ALL_SV_TRUTH_COMPARISONS = STANDARD_SV_TRUTH_COMPARISONS + GGTYPED_SV_TRUTH_COMPARISONS
 
+SV_BENCHMARK_CONFIGS = config.get("sv_benchmarks", {})
+SV_BENCHMARKS = list(SV_BENCHMARK_CONFIGS.keys())
+
 # Absolute path to the envs/ directory — conda: directives in included .smk
 # files resolve relative to the .smk file's own directory, not the project
 # root. Using workflow.basedir (= directory of the main Snakefile) avoids the
@@ -82,3 +85,40 @@ def get_sv_truth_label(wc):
 def get_pipeline_label(wc):
     """Return the display label for a pipeline — the pipeline key name."""
     return wc.pipeline
+
+
+def get_sv_benchmark_truth_vcf(wc):
+    return SV_BENCHMARK_CONFIGS[wc.benchmark]["truth"]["vcf"]
+
+
+def get_sv_benchmark_query_vcf(wc):
+    return SV_BENCHMARK_CONFIGS[wc.benchmark]["query"]["vcf"]
+
+
+def get_sv_benchmark_label(wc):
+    return SV_BENCHMARK_CONFIGS[wc.benchmark].get("name", wc.benchmark)
+
+
+def get_sv_benchmark_truth_label(wc):
+    truth = SV_BENCHMARK_CONFIGS[wc.benchmark]["truth"]
+    return truth.get("name", "truth")
+
+
+def get_sv_benchmark_query_label(wc):
+    query = SV_BENCHMARK_CONFIGS[wc.benchmark]["query"]
+    return query.get("name", "query")
+
+
+def get_sv_benchmark_sample(wc, role):
+    return SV_BENCHMARK_CONFIGS[wc.benchmark][role].get("sample", "")
+
+
+def get_sv_benchmark_filter_value(wc, key, default=None):
+    filters = SV_BENCHMARK_CONFIGS[wc.benchmark].get("filters", {})
+    return filters.get(key, default)
+
+
+def get_sv_benchmark_truvari_value(wc, key, default):
+    params = dict(config.get("truvari", {}))
+    params.update(SV_BENCHMARK_CONFIGS[wc.benchmark].get("truvari", {}))
+    return params.get(key, default)

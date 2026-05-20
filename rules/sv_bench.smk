@@ -274,3 +274,148 @@ rule truvari_bench_ggtyped_sv_truthset:
             --pctseq  {params.pctseq} \
             --sizemin {params.sizemin} 2>{log}
         """
+
+
+rule filter_sv_benchmark_truth:
+    """Filter the truth VCF for one generic SV benchmark."""
+    input:
+        vcf=get_sv_benchmark_truth_vcf,
+    output:
+        vcf=temp(f"{RESULTS}/sv_benchmarks/{{benchmark}}/truth/filtered/sv.vcf.gz"),
+        tbi=temp(f"{RESULTS}/sv_benchmarks/{{benchmark}}/truth/filtered/sv.vcf.gz.tbi"),
+    params:
+        sample=lambda wc: get_sv_benchmark_sample(wc, "truth"),
+        sample_flag=lambda wc: (
+            f"--sample {get_sv_benchmark_sample(wc, 'truth')}"
+            if get_sv_benchmark_sample(wc, "truth")
+            else ""
+        ),
+        pass_flag=lambda wc: (
+            "--pass-only"
+            if get_sv_benchmark_filter_value(
+                wc,
+                "truth_pass_only",
+                get_sv_benchmark_filter_value(wc, "pass_only", False),
+            )
+            else ""
+        ),
+        min_size=lambda wc: get_sv_benchmark_filter_value(wc, "min_size", config["truvari"]["sizemin"]),
+        svtypes=lambda wc: ",".join(get_sv_benchmark_filter_value(wc, "svtypes", [])),
+        svtypes_flag=lambda wc: (
+            "--svtypes " + ",".join(get_sv_benchmark_filter_value(wc, "svtypes", []))
+            if get_sv_benchmark_filter_value(wc, "svtypes", [])
+            else ""
+        ),
+    conda:
+        f"{ENVS}/bcftools.yaml"
+    log:
+        f"{RESULTS}/sv_benchmarks/{{benchmark}}/truth/logs/filter_sv.log",
+    shell:
+        """
+        mkdir -p $(dirname {log}) $(dirname {output.vcf})
+        python {SCRIPTS}/filter_sv_vcf.py \
+            --input {input.vcf} \
+            {params.sample_flag} \
+            --min-size {params.min_size} \
+            {params.svtypes_flag} \
+            {params.pass_flag} 2>{log} \
+            | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
+        """
+
+
+rule filter_sv_benchmark_query:
+    """Filter the query VCF for one generic SV benchmark."""
+    input:
+        vcf=get_sv_benchmark_query_vcf,
+    output:
+        vcf=temp(f"{RESULTS}/sv_benchmarks/{{benchmark}}/query/filtered/sv.vcf.gz"),
+        tbi=temp(f"{RESULTS}/sv_benchmarks/{{benchmark}}/query/filtered/sv.vcf.gz.tbi"),
+    params:
+        sample=lambda wc: get_sv_benchmark_sample(wc, "query"),
+        sample_flag=lambda wc: (
+            f"--sample {get_sv_benchmark_sample(wc, 'query')}"
+            if get_sv_benchmark_sample(wc, "query")
+            else ""
+        ),
+        pass_flag=lambda wc: (
+            "--pass-only"
+            if get_sv_benchmark_filter_value(
+                wc,
+                "query_pass_only",
+                get_sv_benchmark_filter_value(wc, "pass_only", True),
+            )
+            else ""
+        ),
+        min_size=lambda wc: get_sv_benchmark_filter_value(wc, "min_size", config["truvari"]["sizemin"]),
+        svtypes=lambda wc: ",".join(get_sv_benchmark_filter_value(wc, "svtypes", [])),
+        svtypes_flag=lambda wc: (
+            "--svtypes " + ",".join(get_sv_benchmark_filter_value(wc, "svtypes", []))
+            if get_sv_benchmark_filter_value(wc, "svtypes", [])
+            else ""
+        ),
+    conda:
+        f"{ENVS}/bcftools.yaml"
+    log:
+        f"{RESULTS}/sv_benchmarks/{{benchmark}}/query/logs/filter_sv.log",
+    shell:
+        """
+        mkdir -p $(dirname {log}) $(dirname {output.vcf})
+        python {SCRIPTS}/filter_sv_vcf.py \
+            --input {input.vcf} \
+            {params.sample_flag} \
+            --min-size {params.min_size} \
+            {params.svtypes_flag} \
+            {params.pass_flag} 2>{log} \
+            | bgzip -c > {output.vcf}
+        tabix -p vcf {output.vcf}
+        """
+
+
+rule truvari_bench_sv_benchmark:
+    """Benchmark one configured truth/query SV pair."""
+    input:
+        base=f"{RESULTS}/sv_benchmarks/{{benchmark}}/truth/filtered/sv.vcf.gz",
+        base_tbi=f"{RESULTS}/sv_benchmarks/{{benchmark}}/truth/filtered/sv.vcf.gz.tbi",
+        comp=f"{RESULTS}/sv_benchmarks/{{benchmark}}/query/filtered/sv.vcf.gz",
+        comp_tbi=f"{RESULTS}/sv_benchmarks/{{benchmark}}/query/filtered/sv.vcf.gz.tbi",
+    output:
+        summary=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/summary.json",
+        tp_base=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/tp-base.vcf.gz",
+        tp_comp=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/tp-comp.vcf.gz",
+        fp=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/fp.vcf.gz",
+        fn=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari/fn.vcf.gz",
+    params:
+        outdir=f"{RESULTS}/sv_benchmarks/{{benchmark}}/sv/truvari",
+        refdist=lambda wc: get_sv_benchmark_truvari_value(wc, "refdist", config["truvari"]["refdist"]),
+        pctsize=lambda wc: get_sv_benchmark_truvari_value(wc, "pctsize", config["truvari"]["pctsize"]),
+        pctseq=lambda wc: get_sv_benchmark_truvari_value(wc, "pctseq", config["truvari"]["pctseq"]),
+        pctovl=lambda wc: get_sv_benchmark_truvari_value(wc, "pctovl", None),
+        sizemin=lambda wc: get_sv_benchmark_truvari_value(wc, "sizemin", config["truvari"]["sizemin"]),
+        ref_flag=lambda wc: (
+            f"-f {config['reference']}" if config.get("reference") else ""
+        ),
+        pctovl_flag=lambda wc: (
+            f"--pctovl {get_sv_benchmark_truvari_value(wc, 'pctovl', None)}"
+            if get_sv_benchmark_truvari_value(wc, "pctovl", None) is not None
+            else ""
+        ),
+    conda:
+        f"{ENVS}/truvari.yaml"
+    log:
+        f"{RESULTS}/sv_benchmarks/{{benchmark}}/logs/truvari_bench.log",
+    shell:
+        """
+        mkdir -p $(dirname {log})
+        rm -rf {params.outdir}
+        truvari bench \
+            -b {input.base} \
+            -c {input.comp} \
+            {params.ref_flag} \
+            -o {params.outdir} \
+            --refdist {params.refdist} \
+            --pctsize {params.pctsize} \
+            --pctseq  {params.pctseq} \
+            {params.pctovl_flag} \
+            --sizemin {params.sizemin} 2>{log}
+        """

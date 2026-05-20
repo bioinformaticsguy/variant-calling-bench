@@ -98,7 +98,16 @@ with open(log_path, "w") as log:
         tp_counts = get_svtype_counts(snakemake.input.tp_base)
         fp_counts = get_svtype_counts(snakemake.input.fp)
         fn_counts = get_svtype_counts(snakemake.input.fn)
-        pipeline  = str(snakemake.wildcards.pipeline)
+        pipeline = getattr(
+            snakemake.wildcards,
+            "pipeline",
+            getattr(
+                snakemake.wildcards,
+                "benchmark",
+                f"ggtyped_cert_{getattr(snakemake.wildcards, 'threshold', 'NA')}",
+            ),
+        )
+        pipeline = str(pipeline)
 
         # Only show types that appear in at least one file
         present = sorted(
